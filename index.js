@@ -135,6 +135,22 @@ async function run() {
 
 
 
+  app.get('/bookings', async (req, res) => {
+  try {
+    const { email } = req.query;
+    let query = {};
+    
+    if (email) {
+      query = { userEmail: email };
+    }
+
+    const result = await bookingCollection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Somethings Error:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
