@@ -152,6 +152,28 @@ async function run() {
   }
 });
 
+    
+app.delete("/bookings/:appointmentId", async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+
+    if (!ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid ID format' });
+    }
+
+    const result = await bookingCollection.deleteOne({ _id: new ObjectId(appointmentId) });
+
+    if (result.deletedCount > 0) {
+      res.send({ success: true, message: 'Appointment deleted successfully!' });
+    } else {
+      res.status(404).send({ message: 'Appointment not found' });
+    }
+  } catch (error) {
+    console.error("Delete Error:", error);
+    res.status(505).json({ message: "Internal Server Error" });
+  }
+});
+
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
