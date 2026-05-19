@@ -7,6 +7,7 @@ const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 dotenv.config();
 const app = express()
 app.use(cors());
+app.use(express.json());
 const port = process.env.PORT || 8080
 
 
@@ -80,8 +81,41 @@ async function run() {
     const db = client.db('docappoint');
     const appointmentCollection = db.collection('doctor');
 
+
+    const bookingCollection = db.collection('bookings');
+
+    app.post('/bookings', async (req, res) => {
+      try {
+        const bookingData = req.body;
+        
+        if (!bookingData.userEmail || !bookingData.doctorName || !bookingData.patientName) {
+          return res.status(400).send({ message: "Missing required fields" });
+        }
+
+        const result = await bookingCollection.insertOne(bookingData);
+        
+        res.status(201).send({ 
+          success: true, 
+          message: "Appointment booked successfully!", 
+          insertedId: result.insertedId 
+        });
+      } catch (error) {
+        console.error("Booking Error:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+
+
+
     app.get('/appointments', async (req, res) => {
-      const cursor = appointmentCollection.find();
+      const { search } = req.query;
+      let cursor;
+      if (!search) {
+        
+      }
+      // console.log(req.query);
+      
+       cursor = appointmentCollection.find();
       const result = await cursor.toArray();
       // console.log(result);
       res.send(result);
@@ -91,13 +125,13 @@ async function run() {
       async (req, res,) => {
         console.log(req.user, "req");
         
-      const { appointmentId } = req.params;
-      // console.log(appointmentId);
-      const query ={ _id: new ObjectId(appointmentId) }
-      const result = await appointmentCollection.findOne(query);
-      res.send(result);
+        const { appointmentId } = req.params;
+        // console.log(appointmentId);
+        const query = { _id: new ObjectId(appointmentId) }
+        const result = await appointmentCollection.findOne(query);
+        res.send(result);
       
-    })
+      });
 
 
 
