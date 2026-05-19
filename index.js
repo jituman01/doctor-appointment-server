@@ -173,6 +173,45 @@ app.delete("/bookings/:appointmentId", async (req, res) => {
     res.status(505).json({ message: "Internal Server Error" });
   }
 });
+    
+    
+app.patch("/bookings/:appointmentId", async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const bookingsData = req.body;
+
+    if (!ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid ID format' });
+    }
+
+    const isExist = await bookingCollection.findOne({ _id: new ObjectId(appointmentId) });
+    if (!isExist) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+
+    const result = await bookingCollection.updateOne(
+      { _id: new ObjectId(appointmentId) },
+      {
+        $set: {
+          patientName: bookingsData.patientName,
+          phone: bookingsData.phone,
+          appointmentDate: bookingsData.appointmentDate,
+          appointmentTime: bookingsData.appointmentTime,
+          updatedAt: new Date() 
+        }
+      }
+    );
+
+    if (result.modifiedCount > 0 || result.matchedCount > 0) {
+      res.send({ success: true, message: 'Appointment updated successfully!' });
+    } else {
+      res.status(400).send({ success: false, message: 'No changes made' });
+    }
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
