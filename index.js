@@ -83,6 +83,8 @@ async function run() {
 
 
     const bookingCollection = db.collection('bookings');
+    const userCollection = db.collection("user");
+
 
     app.post('/bookings', async (req, res) => {
       try {
@@ -153,7 +155,7 @@ async function run() {
 });
 
     
-app.delete("/bookings/:appointmentId", async (req, res) => {
+  app.delete("/bookings/:appointmentId", async (req, res) => {
   try {
     const { appointmentId } = req.params;
 
@@ -212,7 +214,39 @@ app.patch("/bookings/:appointmentId", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+    
 
+  app.patch("/users/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { name, photoURL } = req.body;
+    if (!name || !photoURL) {
+      return res.status(400).json({ success: false, message: "Name and Photo URL are required" });
+    }
+    const filter = { email: email };
+    const updateDoc = {
+      $set: {
+        name: name,
+        image: photoURL,
+      },
+    };
+
+    const result = await userCollection.updateOne(filter, updateDoc);
+    if (result.modifiedCount > 0 || result.matchedCount > 0) {
+      res.cookie("activeDashboardTab", "profile", {
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        
+      });
+      return res.send({ success: true, message: "Profile updated successfully!" });
+    }
+    else {
+      return res.status(400).send({ success: false, message: "No changes made" });
+    }
+  } catch (error) {
+    console.error("Profile Update Error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
