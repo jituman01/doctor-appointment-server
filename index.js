@@ -95,18 +95,20 @@ async function run() {
 
 
     app.get('/appointments', async (req, res) => {
-      const { search } = req.query;
-      let cursor;
-      if (!search) {
-        
-      }
-      // console.log(req.query);
-      
-       cursor = appointmentCollection.find();
-      const result = await cursor.toArray();
-      // console.log(result);
-      res.send(result);
-    });
+  const { search } = req.query;
+  
+  let query = {};
+  if (search) {
+    query = { name: { $regex: search, $options: 'i' } };
+  }
+
+  const result = await appointmentCollection.find(query).toArray();
+  
+  res.send(result);
+});
+
+
+
 
     app.get('/appointments/:appointmentId', logger, verifyToken,
       async (req, res,) => {
